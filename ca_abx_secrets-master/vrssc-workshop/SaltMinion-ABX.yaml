@@ -1,0 +1,72 @@
+formatVersion: 1
+inputs:
+  custom_spec:
+    type: string
+    enum:
+      - Linux
+      - Windows
+  hostname:
+    type: string
+  image:
+    type: string
+    enum:
+      - Windows
+      - LinuxABX
+    default: LinuxABX
+  template_user:
+    type: string
+    enum:
+      - cas-demo
+      - Administrator
+    default: cas-demo
+  installMinion:
+    type: boolean
+    default: true
+  vrss:
+    type: string
+    title: SaltStack Server
+    enum:
+      - ssc-01.cmbu.local
+      - ssc-02.cmbu.local
+      - ssc-03.cmbu.local
+      - ssc-04.cmbu.local
+      - ssc-05.cmbu.local
+      - ssc-06.cmbu.local
+      - ssc-07.cmbu.local
+      - ssc-08.cmbu.local
+      - ssc-09.cmbu.local
+      - ssc-10.cmbu.local
+      - ssc-11.cmbu.local
+      - ssc-12.cmbu.local
+      - ssc-13.cmbu.local
+      - ssc-14.cmbu.local
+      - ssc-15.cmbu.local
+      - ssc-test.cmbu.local
+      - ssc-16.cmbu.local
+      - ssc-17.cmbu.local
+      - ssc-18.cmbu.local
+      - ssc-19.cmbu.local
+      - ssc-20.cmbu.local
+resources:
+  SaltMinion:
+    type: Cloud.vSphere.Machine
+    properties:
+      flavor: small
+      name: '${input.hostname}'
+      image: '${input.image}'
+      hostname: '${input.hostname}'
+      #ustomizationSpec: '${input.custom_spec == "Linux" ? "Linux": "Windows-base"}'
+      tmpl_user: '${input.template_user}'
+      tmpl_pass: '${input.image == "LinuxABX" ? secret.template_password_linux: secret.template_password_windows}'
+      min_install: '${input.installMinion}'
+      vrss: '${input.vrss}'
+      networks:
+        - network: '${resource.Cloud_vSphere_Network_1.id}'
+      constraints:
+        - tag: 'env:vsphere'
+  Cloud_vSphere_Network_1:
+    type: Cloud.vSphere.Network
+    properties:
+      networkType: existing
+      constraints:
+        - tag: 'env:vsphere'

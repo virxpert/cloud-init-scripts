@@ -1,0 +1,49 @@
+formatVersion: 1
+name: SaltStack-Demo-Template
+version: 1
+inputs:
+  hostname_credentials:
+    type: object
+    description: Hostname and Credentials
+    title: 'Hostname and Credentials : '
+    $ref: /ref/property-groups/hostname_credentials
+  default_minion:
+    type: object
+    description: Minion Settings
+    title: 'Minion Settings : '
+    $ref: /ref/property-groups/default_minion
+  vcfqdn:
+    type: string
+    title: Enter vCenter Endpoint.
+    default: sc2vc03.cmbu.local
+resources:
+  Cloud_Machine_1:
+    type: Cloud.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 0
+    properties:
+      image: '${input.default_minion.os == "Linux" ? "Ubuntu-18-SSC": "Windows-base"}'
+      customizationSpec: '${input.default_minion.os == "Linux" ? "Linux": "Windows-base"}'
+      hostname: '${input.hostname_credentials.hostname}'
+      vmName: '${resource.Cloud_Machine_1.name}'
+      tmpl_user: '${input.hostname_credentials.template_user}'
+      tmpl_pass: '${input.default_minion.os == "Linux" ? secret.template_password_linux: secret.template_password_windows}'
+      min_install: '${input.default_minion.minion == false ? "No": "Yes"}'
+      flavor: '${input.default_minion.flavor}'
+      vcfqdn: '${input.vcfqdn}'
+      networks:
+        - network: '${resource.Cloud_Network_1.id}'
+      constraints:
+        - tag: 'env:vsphere'
+  Cloud_Network_1:
+    type: Cloud.Network
+    metadata:
+      layoutPosition:
+        - 1
+        - 0
+    properties:
+      networkType: existing
+      constraints:
+        - tag: 'env:vsphere'
