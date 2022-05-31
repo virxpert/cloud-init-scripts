@@ -31,14 +31,14 @@ sudo sed -i '/^preserve_hostname: false/a\disable_vmware_customization: true' /e
 sudo sed -i '/^disable_vmware_customization: true/a\datasource_list: [OVF]' /etc/cloud/cloud.cfg
 
 ###disable cloud-init config network. ###
-sed -i '/^disable_vmware_customization: true/a\network:' /etc/cloud/cloud.cfg
-sed -i '/^network:/a\  config: disabled' /etc/cloud/cloud.cfg
+sudo sed -i '/^disable_vmware_customization: true/a\network:' /etc/cloud/cloud.cfg
+sudo sed -i '/^network:/a\  config: disabled' /etc/cloud/cloud.cfg
 
 ###disalbe clean tmp folder. ### 
 sudo sed -i 's/D/#&/' /usr/lib/tmpfiles.d/tmp.conf
 
-###Add After=dbus.service to open-vm-tools. ### 
-sudo sed -i '/^After=vgauthd.service/a\After=dbus.service' /lib/systemd/system/open-vm-tools.service
+###Add After=dbus.service to open-vm-tools  ### 
+sudo sed -i '/^After=vgauth.service/a\After=dbus.service' /lib/systemd/system/open-vm-tools.service
 
 ###disable cloud-init in first boot,we use vmware tools exec customization. ### 
 sudo touch /etc/cloud/cloud-init.disabled
@@ -48,16 +48,16 @@ cat <<EOF > /etc/cloud/runonce.sh
 
 
  
-rm -rf /etc/cloud/cloud-init.disabled
+sudo rm -rf /etc/cloud/cloud-init.disabled
 sudo cloud-init init
-sleep 20
+sudo sleep 20
 sudo cloud-init modules --mode config
 sudo sleep 20
 sudo cloud-init modules --mode final
 
-touch /tmp/cloud-init.complete
+sudo touch /tmp/cloud-init.complete
 
-sudo crontab -r
+crontab -r
 
 EOF
 
@@ -68,7 +68,7 @@ EOF
 ##crontab - adds all the printed stuff into the crontab file. 
 ##You can see the effect by doing a new crontab -l.
 
-crontab -l | { cat; echo "@reboot ( sleep 30 ; sh /etc/cloud/runonce.sh )"; } | crontab -
+crontab -l | { cat; echo "@reboot ( sleep 90 ; sh /etc/cloud/runonce.sh )"; } | crontab -
 crontab -l
 
 ###Create a cleanup script for build vra template. ### 
@@ -123,14 +123,8 @@ EOF
 ###change script execution permissions. ### 
 sudo chmod +x /etc/cloud/runonce.sh /etc/cloud/clean.sh
 
-###reload runonce.service. ### 
-sudo systemctl daemon-reload
-
-###enable runonce.service on system boot. ### 
-sudo systemctl enable runonce.service
-
 ###clean template. ### 
-sudo /etc/cloud/clean.sh
+sudo sh /etc/cloud/clean.sh
 
 ###shutdown os. ###
-shutdown -h now
+sudo shutdown -h now

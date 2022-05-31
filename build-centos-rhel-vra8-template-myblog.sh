@@ -1,13 +1,13 @@
 #!/bin/bash
 
 ###System Update###
-yum update -y
+sudo yum update -y
 
 ###install cloud-init ### 
-yum install -y cloud-init
+sudo yum install -y cloud-init
 
 ###install perl ### 
-yum install -y perl
+sudo yum install -y perl
 
 #!/bin/bash
 
@@ -25,50 +25,50 @@ done
 
 
 ###eanble root and password login for ssh. ###
-sed -i 's/^disable_root: 1/disable_root: 0/g' /etc/cloud/cloud.cfg
-sed -i 's/^ssh_pwauth:   0/ssh_pwauth:   1/g' /etc/cloud/cloud.cfg
+sudo sed -i 's/^disable_root: 1/disable_root: 0/g' /etc/cloud/cloud.cfg
+sudo sed -i 's/^ssh_pwauth:   0/ssh_pwauth:   1/g' /etc/cloud/cloud.cfg
 
 ###disable vmware customization for cloud-init. ###
-sed -i 's/^disable_vmware_customization: false/disable_vmware_customization: true/g' /etc/cloud/cloud.cfg
+sudo sed -i 's/^disable_vmware_customization: false/disable_vmware_customization: true/g' /etc/cloud/cloud.cfg
 
 ###disable permanently disable SELinux on your CentOS system
-sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+sudo sed -i 's/^SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
 
 
 ###setting datasouce is OVF only. ### 
-sed -i '/^disable_vmware_customization: true/a\datasource_list: [OVF]' /etc/cloud/cloud.cfg
+sudo sed -i '/^disable_vmware_customization: true/a\datasource_list: [OVF]' /etc/cloud/cloud.cfg
 
 ###disable cloud-init config network. ###
-sed -i '/^disable_vmware_customization: true/a\network:' /etc/cloud/cloud.cfg
-sed -i '/^network:/a\  config: disabled' /etc/cloud/cloud.cfg
+sudo sed -i '/^disable_vmware_customization: true/a\network:' /etc/cloud/cloud.cfg
+sudo sed -i '/^network:/a\  config: disabled' /etc/cloud/cloud.cfg
 
 ###disalbe clean tmp folder. ### 
-SOURCE_TEXT="q /tmp 1777 root root 10d"
-DEST_TEXT="#q /tmp 1777 root root 10d"
-sed -i "s@${SOURCE_TEXT}@${DEST_TEXT}@g" /usr/lib/tmpfiles.d/tmp.conf
-#sed -i "s/\(^.*10d.*$\)/#\1/" /usr/lib/tmpfiles.d/tmp.conf
+SOURCE_TEXT="v /tmp 1777 root root 10d"
+DEST_TEXT="#v /tmp 1777 root root 10d"
+sudo sed -i "s@${SOURCE_TEXT}@${DEST_TEXT}@g" /usr/lib/tmpfiles.d/tmp.conf
+sudo sed -i "s/\(^.*10d.*$\)/#\1/" /usr/lib/tmpfiles.d/tmp.conf
 
 ###Add After=dbus.service to vmtoolsd. ### 
-sed -i '/^After=vgauthd.service/a\After=dbus.service' /usr/lib/systemd/system/vmtoolsd.service
+sudo sed -i '/^After=vgauthd.service/a\After=dbus.service' /usr/lib/systemd/system/vmtoolsd.service
 
 ###disable cloud-init in first boot,we use vmware tools exec customization. ### 
-touch /etc/cloud/cloud-init.disabled
+sudo touch /etc/cloud/cloud-init.disabled
 
 ###Create a runonce script for re-exec cloud-init. ###
 cat <<EOF > /etc/cloud/runonce.sh
 #!/bin/bash
 
 
-rm -rf /etc/cloud/cloud-init.disabled
+sudo rm -rf /etc/cloud/cloud-init.disabled
 sudo cloud-init init
-sleep 20
+sudo sleep 20
 sudo cloud-init modules --mode config
 sudo sleep 20
 sudo cloud-init modules --mode final
 
-touch /tmp/cloud-init.complete
+sudo touch /tmp/cloud-init.complete
 
-sudo crontab -r
+crontab -r
 
 EOF
 
@@ -79,7 +79,7 @@ EOF
 ##crontab - adds all the printed stuff into the crontab file. 
 ##You can see the effect by doing a new crontab -l.
 
-crontab -l | { cat; echo "@reboot ( sleep 30 ; sh /etc/cloud/runonce.sh )"; } | crontab -
+crontab -l | { cat; echo "@reboot ( sleep 90 ; sh /etc/cloud/runonce.sh )"; } | crontab -
 crontab -l
 
 ###Create a cleanup script for build vra template. ### 
@@ -99,12 +99,12 @@ fi
 
 #cleanup persistent udev rules
 if [ -f /etc/udev/rules.d/70-persistent-net.rules ]; then
-rm /etc/udev/rules.d/70-persistent-net.rules
+sudo rm /etc/udev/rules.d/70-persistent-net.rules
 fi
 
 #cleanup /tmp directories
-rm -rf /tmp/*
-rm -rf /var/tmp/*
+sudo rm -rf /tmp/*
+sudo rm -rf /var/tmp/*
 
 #cleanup current ssh keys
 #rm -f /etc/ssh/ssh_host_*
@@ -112,7 +112,7 @@ rm -rf /var/tmp/*
 #cat /dev/null > /etc/hostname
 
 #cleanup apt
-yum clean all
+sudo yum clean all
 
 #Clean Machine ID
 
@@ -121,7 +121,7 @@ rm /var/lib/dbus/machine-id
 ln -s /etc/machine-id /var/lib/dbus/machine-id
 
 #Clean Cloud-init
-cloud-init clean --logs --seed
+sudo cloud-init clean --logs --seed
 
 #cleanup shell history
 echo > ~/.bash_history
@@ -129,10 +129,10 @@ history -cw
 EOF
 
 ###change script execution permissions. ### 
-chmod +x /etc/cloud/runonce.sh /etc/cloud/clean.sh
+sudo chmod +x /etc/cloud/runonce.sh /etc/cloud/clean.sh
 
 ###clean template. ### 
-sh /etc/cloud/clean.sh
+sudo sh /etc/cloud/clean.sh
 
 ###shutdown os. ###
 shutdown -h now

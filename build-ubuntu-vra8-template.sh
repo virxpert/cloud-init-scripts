@@ -32,14 +32,15 @@ sudo sed -i '/^preserve_hostname: false/a\disable_vmware_customization: true' /e
 sudo sed -i '/^disable_vmware_customization: true/a\datasource_list: [OVF]' /etc/cloud/cloud.cfg
 
 ###disable cloud-init config network. ###
-sed -i '/^disable_vmware_customization: true/a\network:' /etc/cloud/cloud.cfg
-sed -i '/^network:/a\  config: disabled' /etc/cloud/cloud.cfg
+sudo sed -i '/^disable_vmware_customization: true/a\network:' /etc/cloud/cloud.cfg
+sudo sed -i '/^network:/a\  config: disabled' /etc/cloud/cloud.cfg
 
 ###disalbe clean tmp folder. ### 
 sudo sed -i 's/D/#&/' /usr/lib/tmpfiles.d/tmp.conf
 
-###Add After=dbus.service to open-vm-tools. ### 
-sudo sed -i '/^After=vgauthd.service/a\After=dbus.service' /lib/systemd/system/open-vm-tools.service
+
+###Add After=dbus.service to open-vm-tools  ### 
+sudo sed -i '/^After=vgauth.service/a\After=dbus.service' /lib/systemd/system/open-vm-tools.service
 
 ###disable cloud-init in first boot,we use vmware tools exec customization. ### 
 sudo touch /etc/cloud/cloud-init.disabled
@@ -67,7 +68,7 @@ After=cloud-init-local.service
 
 [Service]
 ###wait for vmware customization to complete, avoid executing cloud-init at the first startup.###
-ExecStartPre=/bin/sleep 30
+ExecStartPre=/bin/sleep 90
 ExecStart=/etc/cloud/runonce.sh
 
 [Install]
@@ -132,7 +133,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable runonce.service
 
 ###clean template. ### 
-sudo /etc/cloud/clean.sh
+sudo sh /etc/cloud/clean.sh
 
 ###shutdown os. ###
-shutdown -h now
+sudo shutdown -h now
